@@ -28,10 +28,10 @@ const App = () => {
           setWeb3(web3);
           const accounts = await web3.eth.getAccounts();
           setAccount(accounts[0]);
-          const exchangeAddress = '0x4fF442d96761eB1D1E16dcCa0F4dbfCD47a39aCA';
-          const factoriesAddress = '0x7d807180C65F2b37A656aE7A50514797D83515Ee';
-          const farmersAddress = '0x7df3E4e2e445BeDb6E26bD0638000F2FB0a43F73';
-          const FARMER_CONTRACT_ADDRESS = '0x7df3E4e2e445BeDb6E26bD0638000F2FB0a43F73';
+          const exchangeAddress = '0xdEAF83c15e176B4BE8c1A3A0825fB1AE661343a3';
+          const factoriesAddress = '0xfaD6Eb142Bf98c20C961A56FcEba6Be776c5c852';
+          const farmersAddress = '0x6f17926FA3934dcDeD5dA4AD7341d4C6A4712c12';
+          const FARMER_CONTRACT_ADDRESS = '0x6f17926FA3934dcDeD5dA4AD7341d4C6A4712c12';
           console.log("Exchange Contract ABI:", ExchangeABI);
           console.log("Factories Contract ABI:", FactoriesABI);
           console.log("Farmers Contract ABI:", FarmersABI);
@@ -60,7 +60,17 @@ const App = () => {
         alert('Product ID must be a valid number.');
         return;
       }
-      await exchangeContract.methods.addProduct(String(productId), totalSupply, FARMER_CONTRACT).send({ from: account });
+      if (!exchangeContract) {
+        alert('Exchange contract not initialized.');
+        return;
+      }
+      await exchangeContract.methods
+        .addProduct(
+          web3.utils.asciiToHex(productId.toString()), // Convert the product ID to hex format
+          parseInt(totalSupply), // Parse the total supply as an integer
+          FARMER_CONTRACT
+        )
+        .send({ from: account });
       alert('Product added successfully!');
     } catch (error) {
       console.error(error);
@@ -68,14 +78,13 @@ const App = () => {
     }
   };
   
-  
-  
-  
-
   const handleAddProduce = async () => {
     console.log("Factories Contract Instance:", factoriesContract); // Add this to check factories contract instance
     try {
-      await factoriesContract.methods.produceFertilizerLot(produceTag, [10, 20, 30], '', 0, price).send({ from: account });
+      const priceInWei = web3.utils.toWei(price.toString(), 'ether');
+      await factoriesContract.methods
+        .produceFertilizerLot(produceTag, [10, 20, 30], '', 0, priceInWei)
+        .send({ from: account });
       alert('Produce added successfully!');
     } catch (error) {
       console.error(error);
@@ -103,11 +112,11 @@ const App = () => {
       <div>
         <div>
           <label htmlFor="productId">Product ID:</label>
-          <input type="string" id="productId" value={productId} onChange={e => setProductId(e.target.value)} />
+          <input type="number" id="productId" value={productId} onChange={e => setProductId(e.target.value)} />
         </div>
         <div>
           <label htmlFor="totalSupply">Total Supply:</label>
-          <input type="string" id="totalSupply" value={totalSupply} onChange={e => setTotalSupply(e.target.value)} />
+          <input type="number" id="totalSupply" value={totalSupply} onChange={e => setTotalSupply(e.target.value)} />
         </div>
         <button onClick={handleAddProduct}>Add Product</button>
       </div>
@@ -120,7 +129,7 @@ const App = () => {
         </div>
         <div>
           <label htmlFor="price">Price:</label>
-          <input type="number" id="price" value={price} onChange={e => setPrice(e.target.value)} />
+          <input type="text" id="price" value={price} onChange={e => setPrice(e.target.value)} />
         </div>
         <button onClick={handleAddProduce}>Add Produce</button>
       </div>
