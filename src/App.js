@@ -79,11 +79,12 @@ const App = () => {
   };
   
   const handleAddProduce = async () => {
-    console.log("Factories Contract Instance:", factoriesContract); // Add this to check factories contract instance
+    console.log("Factories Contract Instance:", factoriesContract);
     try {
+      const produceTagInAscii = web3.utils.asciiToHex(produceTag.toString());
       const priceInWei = web3.utils.toWei(price.toString(), 'ether');
       await factoriesContract.methods
-        .produceFertilizerLot(produceTag, [10, 20, 30], '', 0, priceInWei)
+        .produceFertilizerLot(produceTagInAscii, [10, 20, 30], '', 0, priceInWei)
         .send({ from: account });
       alert('Produce added successfully!');
     } catch (error) {
